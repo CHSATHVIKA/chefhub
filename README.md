@@ -4,6 +4,11 @@ ChefHub is a booking platform for home chefs. Customers search for chefs by city
 
 I built it as a full-stack portfolio project to practise Spring Boot, Spring Security with JWT, JPA and a React frontend.
 
+**Live demo:** https://chefhub-rose.vercel.app
+**API docs (Swagger):** https://chefhub-ozlh.onrender.com/swagger-ui.html
+
+The backend runs on Render's free tier, so the first request after a while can take about a minute while the server wakes up.
+
 ## Features
 
 - Register and log in as a customer or chef, with JWT auth and role-based access (CUSTOMER, CHEF, ADMIN)
@@ -21,7 +26,7 @@ I built it as a full-stack portfolio project to practise Spring Boot, Spring Sec
 | Backend  | Java 17, Spring Boot 3.5, Spring Security, JWT (jjwt), Spring Data JPA, Bean Validation, Lombok, springdoc-openapi |
 | Database | MySQL 8 |
 | Frontend | React 18, Vite, React Router, Axios, Tailwind CSS |
-| DevOps   | Docker (multi-stage), docker-compose, Render, Railway, Vercel |
+| DevOps   | Docker (multi-stage), docker-compose, Render, Aiven, Vercel |
 
 ## Architecture
 
@@ -35,7 +40,7 @@ flowchart LR
         F[JwtAuthFilter] --> C
     end
     API --- API_Layers
-    R --> DB[(MySQL - Railway)]
+    R --> DB[(MySQL - Aiven)]
 ```
 
 Backend packages under `com.chefhub`:

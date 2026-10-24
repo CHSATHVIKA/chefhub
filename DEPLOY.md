@@ -1,79 +1,72 @@
 # Deploying ChefHub
 
-The setup is MySQL on Railway, the backend on Render as a Docker service, and the frontend on Vercel.
+The setup is MySQL on Aiven (free plan), the backend on Render as a Docker service, and the frontend on Vercel.
 
-## 1. MySQL on Railway
+Live:
+- Frontend: https://chefhub-rose.vercel.app
+- Backend: https://chefhub-ozlh.onrender.com
 
-1. Sign in at https://railway.app, then go to **New Project -> Deploy MySQL**.
-2. Open the MySQL service and go to the **Variables** tab. Note down:
-   - `MYSQLHOST`, `MYSQLPORT`, `MYSQLDATABASE`, `MYSQLUSER`, `MYSQLPASSWORD`
-3. Go to **Settings -> Networking** and make sure a **public TCP proxy** is enabled. Render is outside Railway's private network, so it needs the public host and port. They look like `xxx.proxy.rlwy.net:12345`.
-4. Your JDBC URL is:
+## 1. MySQL on Aiven
+
+1. Sign up at https://aiven.io (no card needed).
+2. Go to **Create service -> MySQL**. Under **Customize plan and cloud**, pick the **Free** plan and an Asia Pacific region.
+3. Wait until the status shows **Running**.
+4. From **Connection information**, copy the Host, Port, User (`avnadmin`), Password and Database (`defaultdb`).
+5. Your JDBC URL is:
    ```
-   jdbc:mysql://<PUBLIC_HOST>:<PUBLIC_PORT>/<MYSQLDATABASE>?useSSL=true&requireSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Kolkata
+   jdbc:mysql://<HOST>:<PORT>/defaultdb?sslMode=REQUIRED&serverTimezone=Asia/Kolkata
    ```
+
+Free Aiven services power off after long inactivity. If that happens, power yours back on from the Aiven console.
 
 ## 2. Backend on Render (Docker)
 
-1. Push the repo to GitHub (see NEXT_STEPS.md).
-2. In https://render.com, go to **New -> Web Service** and connect the `chefhub` repo.
-3. Use these settings:
-   - **Language/Runtime:** Docker
+1. In https://render.com, go to **New -> Web Service** and connect the `chefhub` GitHub repo.
+2. Use these settings:
+   - **Language:** Docker
    - **Root Directory:** `backend`
-   - **Dockerfile Path:** `./Dockerfile`
+   - **Region:** Singapore
    - **Instance type:** Free
-4. Add these **Environment Variables**:
+3. Add these **Environment Variables**:
 
    | Key | Value |
    |-----|-------|
-   | `DB_URL` | the JDBC URL from step 1.4 |
-   | `DB_USERNAME` | `MYSQLUSER` from Railway |
-   | `DB_PASSWORD` | `MYSQLPASSWORD` from Railway |
-   | `JWT_SECRET` | a new Base64 secret, for example the output of `openssl rand -base64 48` |
-   | `ALLOWED_ORIGIN` | your Vercel URL, e.g. `https://chefhub.vercel.app` (no trailing slash; leave a placeholder for now and update it after step 3) |
+   | `DB_URL` | the JDBC URL from step 1.5 |
+   | `DB_USERNAME` | `avnadmin` |
+   | `DB_PASSWORD` | the Aiven password |
+   | `JWT_SECRET` | a random Base64 string of at least 32 bytes, e.g. from `openssl rand -base64 48` |
+   | `ALLOWED_ORIGIN` | the Vercel URL, e.g. `https://chefhub-rose.vercel.app` (no trailing slash) |
 
-   Render sets `PORT` itself, and the app already reads it.
-5. Deploy. The first build takes about 5 minutes. When it finishes, open `https://<your-service>.onrender.com/api/chefs`. You should see JSON with 6 chefs, because the seeder fills the empty database.
+   Render sets `PORT` itself, and the app reads it.
+4. Deploy. The first build takes about 5 to 10 minutes, and the seeder fills the empty database. Then check `https://<render-url>/api/chefs`.
 
 ## 3. Frontend on Vercel
 
-From the `frontend` folder:
+1. In https://vercel.com, go to **Add New -> Project** and import the `chefhub` repo.
+2. Set **Root Directory** to `frontend`. The framework is detected as Vite.
+3. Add the environment variable `VITE_API_URL` = `https://<render-url>` (no trailing slash, no `/api`).
+4. Click Deploy.
 
-```bash
-npm i -g vercel
-vercel login
-vercel link                 # create project "chefhub"
-vercel env add VITE_API_URL production
-# paste: https://<your-service>.onrender.com   (no trailing slash, no /api)
-vercel --prod
-```
-
-Or use the dashboard instead: **Add New -> Project**, pick the repo, and set **Root Directory** to `frontend` (the Vite preset is detected automatically). Add `VITE_API_URL` under Environment Variables, then deploy.
-
-`vercel.json` already rewrites every route to `index.html`, so page refreshes on `/chefs/1` work.
-
-Note: `VITE_API_URL` is baked in at build time. If you change it, redeploy.
+`vercel.json` rewrites every route to `index.html`, so page refreshes on routes like `/chefs/1` work. `VITE_API_URL` is baked in at build time, so redeploy after you change it.
 
 ## 4. Connect the two
 
-1. Copy the Vercel production URL.
-2. On Render, set `ALLOWED_ORIGIN` to that URL. To allow preview URLs too, separate them with commas.
-3. Render redeploys automatically.
+Set `ALLOWED_ORIGIN` on Render to the exact Vercel URL and save. Render redeploys automatically.
 
 ## 5. Smoke-test checklist
 
 - [ ] `GET https://<render-url>/api/chefs` returns 6 chefs
 - [ ] `https://<render-url>/swagger-ui.html` loads
 - [ ] The Vercel home page loads with images and the "Chefs cooking this week" cards
-- [ ] Refreshing `/chefs` directly works (no Vercel 404)
+- [ ] Refreshing `/chefs` directly works (no 404)
 - [ ] The city filter (Hyderabad) shows Ananya Rao
 - [ ] Log in as `priya@example.com` / `password123` and book a slot, and it shows as **Pending** in My bookings
-- [ ] Log in as the chef you booked (e.g. `meera@chefhub.in`), click **Accept**, and the status becomes **Confirmed**
-- [ ] As the customer, try booking the same slot again: it should be gone from the list
-- [ ] Log in as `admin@chefhub.in` / `admin123`: bookings are listed, and blocking a chef removes them from search
-- [ ] The browser console shows no CORS errors (if it does, check `ALLOWED_ORIGIN` exactly matches the Vercel URL)
+- [ ] Log in as that chef (e.g. `meera@chefhub.in`), click **Accept**, and the status becomes **Confirmed**
+- [ ] The booked slot no longer appears on the chef page
+- [ ] Log in as `admin@chefhub.in` / `admin123`: bookings are listed, and blocking a chef hides them from search
+- [ ] The browser console shows no CORS errors
 
 ## Notes
 
-- Render free instances sleep after inactivity, so the first request can take around 50 seconds.
-- Railway's free trial has limited credits, so keep an eye on usage.
+- Render free instances sleep after about 15 minutes idle, so the first request takes around 50 seconds.
+- Every push to `main` redeploys both Render and Vercel automatically.
