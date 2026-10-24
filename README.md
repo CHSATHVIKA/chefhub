@@ -9,6 +9,20 @@ I built it as a full-stack portfolio project to practise Spring Boot, Spring Sec
 
 The backend runs on Render's free tier, so the first request after a while can take about a minute while the server wakes up.
 
+## Screenshots
+
+![Home page](docs/screenshots/home.png)
+
+| How it works | Featured chefs |
+|---|---|
+| ![How it works](docs/screenshots/how-it-works.png) | ![Featured chefs](docs/screenshots/featured-chefs.png) |
+
+| Booking a slot | Chef dashboard |
+|---|---|
+| ![Booking page](docs/screenshots/booking.png) | ![Chef dashboard](docs/screenshots/chef-dashboard.png) |
+
+![Admin dashboard](docs/screenshots/admin.png)
+
 ## Features
 
 - Register and log in as a customer or chef, with JWT auth and role-based access (CUSTOMER, CHEF, ADMIN)
