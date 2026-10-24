@@ -6,6 +6,8 @@ import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
 import './index.css'
 
+sessionStorage.removeItem('chefhub-reloaded')
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>

@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ServerWakeBanner from './components/ServerWakeBanner'
+import ErrorBoundary from './components/ErrorBoundary'
 import ProtectedRoute from './routes/ProtectedRoute'
 import Home from './pages/Home'
 import ChefList from './pages/ChefList'
@@ -26,29 +27,31 @@ export default function App() {
       <Navbar />
       <ServerWakeBanner />
       <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/chefs" element={<ChefList />} />
-          <Route path="/chefs/:id" element={<ChefDetails />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <ErrorBoundary key={pathname}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/chefs" element={<ChefList />} />
+            <Route path="/chefs/:id" element={<ChefDetails />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          <Route element={<ProtectedRoute roles={['CUSTOMER']} />}>
-            <Route path="/book/:chefId/:slotId" element={<Booking />} />
-            <Route path="/booking/confirmed" element={<BookingConfirmed />} />
-            <Route path="/my-bookings" element={<MyBookings />} />
-          </Route>
+            <Route element={<ProtectedRoute roles={['CUSTOMER']} />}>
+              <Route path="/book/:chefId/:slotId" element={<Booking />} />
+              <Route path="/booking/confirmed" element={<BookingConfirmed />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
+            </Route>
 
-          <Route element={<ProtectedRoute roles={['CHEF']} />}>
-            <Route path="/chef/dashboard" element={<ChefDashboard />} />
-          </Route>
+            <Route element={<ProtectedRoute roles={['CHEF']} />}>
+              <Route path="/chef/dashboard" element={<ChefDashboard />} />
+            </Route>
 
-          <Route element={<ProtectedRoute roles={['ADMIN']} />}>
-            <Route path="/admin" element={<AdminDashboard />} />
-          </Route>
+            <Route element={<ProtectedRoute roles={['ADMIN']} />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
       <Footer />
     </div>
