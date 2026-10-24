@@ -11,7 +11,7 @@ The backend runs on Render's free tier, so the first request after a while can t
 
 ## Screenshots
 
-![Home page](docs/screenshots/home.png)
+![Home page](docs/screenshots/home-page.png)
 
 | Chef profile with day and time picker | Booking with price breakdown |
 |---|---|
@@ -162,6 +162,16 @@ Other chefs: kabir@, ananya@, rohan@ and sneha@chefhub.in, all with password123.
 | PATCH | `/api/admin/chefs/{id}/approve`, `/api/admin/chefs/{id}/block` | Admin |
 
 You can find the full docs in Swagger UI.
+
+## Deployment
+
+| Part | Platform |
+|------|----------|
+| Frontend | Vercel (redeploys on every push to `main`) |
+| Backend | Render, Docker web service |
+| Database | Aiven MySQL |
+
+Step-by-step setup is in [docs/deployment.md](docs/deployment.md). To see how a booking travels from the React button to the database, read [docs/booking-flow.md](docs/booking-flow.md).
 
 ## Future improvements
 
