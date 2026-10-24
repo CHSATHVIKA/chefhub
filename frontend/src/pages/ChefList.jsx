@@ -45,7 +45,9 @@ export default function ChefList() {
   }
 
   useEffect(loadChefs, [searchParams])
-  useEffect(() => setCuisineInput(cuisine), [cuisine])
+  useEffect(() => {
+    setCuisineInput(cuisine)
+  }, [cuisine])
 
   // any filter change resets to the first page
   const updateFilter = (key, value) => {
