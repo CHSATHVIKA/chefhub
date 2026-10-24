@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { addMenuItem, deleteMenuItem, getMyMenu, updateMenuItem } from '../../api/chefDashboard'
 import { getErrorMessage } from '../../api/client'
+import { useToast } from '../../context/ToastContext'
 import EmptyState from '../EmptyState'
 import ErrorMessage from '../ErrorMessage'
+import Icon from '../Icon'
 import Loader from '../Loader'
 import VegMark from '../VegMark'
 import { formatPrice } from '../../utils/format'
@@ -10,6 +12,7 @@ import { formatPrice } from '../../utils/format'
 const EMPTY_FORM = { name: '', description: '', price: '', veg: true }
 
 export default function MenuManager() {
+  const toast = useToast()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -38,9 +41,11 @@ export default function MenuManager() {
       if (editingId) {
         const updated = await updateMenuItem(editingId, payload)
         setItems((list) => list.map((i) => (i.id === editingId ? updated : i)))
+        toast('Dish updated')
       } else {
         const created = await addMenuItem(payload)
         setItems((list) => [...list, created])
+        toast(`${created.name} added to your menu`)
       }
       resetForm()
     } catch (err) {
@@ -61,15 +66,16 @@ export default function MenuManager() {
       await deleteMenuItem(id)
       setItems((list) => list.filter((i) => i.id !== id))
       if (editingId === id) resetForm()
+      toast('Dish removed')
     } catch (err) {
-      setError(getErrorMessage(err))
+      toast(getErrorMessage(err), 'error')
     }
   }
 
   if (loading) return <Loader />
 
   return (
-    <div className="grid gap-6 lg:grid-cols-5">
+    <div className="grid gap-8 lg:grid-cols-5">
       <form onSubmit={handleSubmit} className="card h-fit space-y-4 p-6 lg:col-span-2">
         <h2 className="text-xl font-semibold">{editingId ? 'Edit dish' : 'Add a dish'}</h2>
         <ErrorMessage message={error} />
@@ -113,18 +119,25 @@ export default function MenuManager() {
             />
           </div>
           <div>
-            <label className="label" htmlFor="dish-type">
-              Type
-            </label>
-            <select
-              id="dish-type"
-              className="input"
-              value={form.veg ? 'veg' : 'nonveg'}
-              onChange={(e) => setForm({ ...form, veg: e.target.value === 'veg' })}
-            >
-              <option value="veg">Veg</option>
-              <option value="nonveg">Non-veg</option>
-            </select>
+            <p className="label">Type</p>
+            <div className="flex rounded-xl bg-line/60 p-1">
+              {[
+                [true, 'Veg'],
+                [false, 'Non-veg'],
+              ].map(([veg, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setForm({ ...form, veg })}
+                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+                    form.veg === veg ? 'bg-white shadow-sm' : 'text-muted'
+                  }`}
+                >
+                  <VegMark veg={veg} />
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex gap-2">
@@ -141,32 +154,38 @@ export default function MenuManager() {
 
       <div className="lg:col-span-3">
         {items.length === 0 ? (
-          <EmptyState title="Your menu is empty" text="Add three or four signature dishes so customers know what to expect." />
+          <EmptyState
+            title="Your menu is empty"
+            text="Add three or four signature dishes so customers know what to expect."
+          />
         ) : (
-          <ul className="card divide-y divide-line">
+          <div className="grid gap-3 sm:grid-cols-2">
             {items.map((item) => (
-              <li key={item.id} className="flex items-start justify-between gap-4 p-5">
-                <div className="flex gap-3">
-                  <span className="mt-1">
-                    <VegMark veg={item.veg} />
-                  </span>
-                  <div>
+              <div
+                key={item.id}
+                className={`card flex flex-col p-4 transition ${editingId === item.id ? 'ring-2 ring-brand' : ''}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2">
+                    <span className="mt-1">
+                      <VegMark veg={item.veg} />
+                    </span>
                     <p className="font-semibold">{item.name}</p>
-                    {item.description && <p className="text-sm text-muted">{item.description}</p>}
-                    <p className="mt-1 text-sm font-medium">{formatPrice(item.price)}</p>
                   </div>
+                  <span className="whitespace-nowrap font-semibold text-brand-deep">{formatPrice(item.price)}</span>
                 </div>
-                <div className="flex gap-1">
+                {item.description && <p className="mt-1 pl-6 text-sm text-muted">{item.description}</p>}
+                <div className="mt-auto flex justify-end gap-1 pt-3">
                   <button onClick={() => startEdit(item)} className="btn-ghost px-3 py-1.5">
-                    Edit
+                    <Icon name="edit" className="h-4 w-4" /> Edit
                   </button>
                   <button onClick={() => handleDelete(item.id)} className="btn-ghost px-3 py-1.5 text-red-700">
-                    Delete
+                    <Icon name="trash" className="h-4 w-4" /> Delete
                   </button>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>

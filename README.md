@@ -13,15 +13,21 @@ The backend runs on Render's free tier, so the first request after a while can t
 
 ![Home page](docs/screenshots/home.png)
 
-| How it works | Featured chefs |
+| Chef profile with day and time picker | Booking with price breakdown |
 |---|---|
-| ![How it works](docs/screenshots/how-it-works.png) | ![Featured chefs](docs/screenshots/featured-chefs.png) |
+| ![Chef details](docs/screenshots/chef-details.png) | ![Booking page](docs/screenshots/booking.png) |
 
-| Booking a slot | Chef dashboard |
+| Booking confirmed | My bookings |
 |---|---|
-| ![Booking page](docs/screenshots/booking.png) | ![Chef dashboard](docs/screenshots/chef-dashboard.png) |
+| ![Booking confirmed](docs/screenshots/booking-confirmed.png) | ![My bookings](docs/screenshots/my-bookings.png) |
 
-![Admin dashboard](docs/screenshots/admin.png)
+| Chef dashboard | Chef profile editor with live preview |
+|---|---|
+| ![Chef dashboard](docs/screenshots/chef-dashboard.png) | ![Chef profile](docs/screenshots/chef-profile.png) |
+
+| Admin dashboard | Mobile |
+|---|---|
+| ![Admin dashboard](docs/screenshots/admin.png) | ![Mobile chef page](docs/screenshots/mobile.png) |
 
 ## Features
 

@@ -9,6 +9,9 @@
   h1, h2, h3 {
     @apply font-display tracking-tight;
   }
+  ::selection {
+    @apply bg-brand/20;
+  }
 }
 
 @layer components {
@@ -18,11 +21,17 @@
   .card {
     @apply rounded-2xl border border-line bg-card shadow-soft;
   }
+  .card-hover {
+    @apply transition duration-300 hover:-translate-y-1 hover:shadow-lift;
+  }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand-deep;
+    @apply btn bg-brand text-white shadow-sm shadow-brand/30 hover:bg-brand-deep;
+  }
+  .btn-dark {
+    @apply btn bg-ink text-cream hover:bg-ink-soft;
   }
   .btn-outline {
     @apply btn border border-brand/40 text-brand-deep hover:bg-brand/10;
@@ -37,9 +46,21 @@
     @apply mb-1.5 block text-sm font-medium text-ink;
   }
   .input {
-    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20;
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink transition placeholder:text-muted/70 focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15;
   }
   .chip {
     @apply inline-flex items-center rounded-full bg-brand/10 px-2.5 py-0.5 text-xs font-medium text-brand-deep;
+  }
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-brand-deep;
+  }
+  .skeleton {
+    @apply animate-pulse rounded-lg bg-line/80;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

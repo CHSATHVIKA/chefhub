@@ -5,20 +5,26 @@ import { getErrorMessage } from '../api/client'
 import ChefCard from '../components/ChefCard'
 import EmptyState from '../components/EmptyState'
 import ErrorMessage from '../components/ErrorMessage'
-import Loader from '../components/Loader'
+import Icon from '../components/Icon'
+import { ChefCardSkeleton } from '../components/Skeletons'
 
 const CITIES = ['Mumbai', 'Delhi', 'Bengaluru', 'Hyderabad', 'Chennai', 'Kolkata']
+const QUICK_CUISINES = ['North Indian', 'South Indian', 'Biryani', 'Bengali', 'Punjabi', 'Continental']
+const TIERS = [
+  { value: '', label: 'All' },
+  { value: 'STANDARD', label: 'Standard' },
+  { value: 'PREMIUM', label: 'Premium' },
+]
 const PAGE_SIZE = 6
 
 export default function ChefList() {
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filters, setFilters] = useState({
-    city: searchParams.get('city') || '',
-    cuisine: searchParams.get('cuisine') || '',
-    tier: searchParams.get('tier') || '',
-  })
+  const city = searchParams.get('city') || ''
+  const cuisine = searchParams.get('cuisine') || ''
+  const tier = searchParams.get('tier') || ''
   const page = Number(searchParams.get('page') || 0)
 
+  const [cuisineInput, setCuisineInput] = useState(cuisine)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -27,9 +33,9 @@ export default function ChefList() {
     setLoading(true)
     setError('')
     searchChefs({
-      city: searchParams.get('city') || undefined,
-      cuisine: searchParams.get('cuisine') || undefined,
-      tier: searchParams.get('tier') || undefined,
+      city: city || undefined,
+      cuisine: cuisine || undefined,
+      tier: tier || undefined,
       page,
       size: PAGE_SIZE,
     })
@@ -39,91 +45,134 @@ export default function ChefList() {
   }
 
   useEffect(loadChefs, [searchParams])
+  useEffect(() => setCuisineInput(cuisine), [cuisine])
 
-  const applyFilters = (e) => {
-    e.preventDefault()
-    const params = {}
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value.trim()) params[key] = value.trim()
-    })
+  // any filter change resets to the first page
+  const updateFilter = (key, value) => {
+    const params = Object.fromEntries(searchParams)
+    delete params.page
+    if (value) params[key] = value
+    else delete params[key]
     setSearchParams(params)
   }
 
   const clearFilters = () => {
-    setFilters({ city: '', cuisine: '', tier: '' })
+    setCuisineInput('')
     setSearchParams({})
   }
 
   const goToPage = (next) => {
-    const params = Object.fromEntries(searchParams)
-    setSearchParams({ ...params, page: next })
+    setSearchParams({ ...Object.fromEntries(searchParams), page: next })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const hasFilters = city || cuisine || tier
+
   return (
     <div className="container-page py-10">
-      <h1 className="text-4xl font-semibold">Find your chef</h1>
-      <p className="mt-2 text-muted">Filter by city, cuisine or tier. Prices are per visit, groceries billed at cost.</p>
+      <div className="animate-fade-up">
+        <p className="eyebrow">{city ? `Chefs in ${city}` : 'All cities'}</p>
+        <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Find your chef</h1>
+        <p className="mt-3 max-w-xl text-muted">
+          Every chef here is verified by our team. Prices are per visit, and groceries are billed at cost.
+        </p>
+      </div>
 
-      <form onSubmit={applyFilters} className="card mt-8 grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:items-end">
-        <div>
-          <label className="label" htmlFor="city">
-            City
+      <div className="card sticky top-[72px] z-20 mt-8 p-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            updateFilter('cuisine', cuisineInput.trim())
+          }}
+          className="grid gap-2 md:grid-cols-[180px_1fr_auto_auto] md:items-center"
+        >
+          <label className="flex items-center gap-2 rounded-xl border border-line bg-white px-3">
+            <Icon name="pin" className="h-4 w-4 text-brand" />
+            <select
+              aria-label="City"
+              className="w-full bg-transparent py-2.5 text-sm focus:outline-none"
+              value={city}
+              onChange={(e) => updateFilter('city', e.target.value)}
+            >
+              <option value="">All cities</option>
+              {CITIES.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
           </label>
-          <select
-            id="city"
-            className="input"
-            value={filters.city}
-            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-          >
-            <option value="">All cities</option>
-            {CITIES.map((c) => (
-              <option key={c}>{c}</option>
+          <label className="flex items-center gap-2 rounded-xl border border-line bg-white px-3">
+            <Icon name="search" className="h-4 w-4 text-brand" />
+            <input
+              id="cuisine"
+              aria-label="Cuisine"
+              className="w-full bg-transparent py-2.5 text-sm focus:outline-none"
+              placeholder="Search a cuisine and press enter"
+              value={cuisineInput}
+              onChange={(e) => setCuisineInput(e.target.value)}
+            />
+          </label>
+          <div className="flex rounded-xl bg-line/60 p-1">
+            {TIERS.map((t) => (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => updateFilter('tier', t.value)}
+                className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                  tier === t.value ? 'bg-white text-ink shadow-sm' : 'text-muted hover:text-ink'
+                }`}
+              >
+                {t.label}
+              </button>
             ))}
-          </select>
-        </div>
-        <div>
-          <label className="label" htmlFor="cuisine">
-            Cuisine
-          </label>
-          <input
-            id="cuisine"
-            className="input"
-            placeholder="e.g. Biryani, South Indian"
-            value={filters.cuisine}
-            onChange={(e) => setFilters({ ...filters, cuisine: e.target.value })}
-          />
-        </div>
-        <div>
-          <label className="label" htmlFor="tier">
-            Tier
-          </label>
-          <select
-            id="tier"
-            className="input"
-            value={filters.tier}
-            onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
-          >
-            <option value="">Any tier</option>
-            <option value="STANDARD">Standard</option>
-            <option value="PREMIUM">Premium</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <button type="submit" className="btn-primary flex-1">
+          </div>
+          <button type="submit" className="btn-primary">
             Search
           </button>
-          <button type="button" onClick={clearFilters} className="btn-ghost">
-            Clear
+        </form>
+      </div>
+
+      <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto pb-1">
+        {QUICK_CUISINES.map((c) => (
+          <button
+            key={c}
+            onClick={() => updateFilter('cuisine', cuisine === c ? '' : c)}
+            className={`whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+              cuisine === c
+                ? 'border-brand bg-brand text-white'
+                : 'border-line bg-white text-ink hover:border-brand hover:text-brand-deep'
+            }`}
+          >
+            {c}
           </button>
-        </div>
-      </form>
+        ))}
+      </div>
 
       <div className="mt-8">
-        {loading && <Loader text="Finding chefs..." />}
+        {!loading && !error && result && (
+          <div className="mb-5 flex items-center justify-between">
+            <p className="text-sm text-muted">
+              <span className="font-semibold text-ink">{result.totalElements}</span> chef
+              {result.totalElements === 1 ? '' : 's'} available
+            </p>
+            {hasFilters && (
+              <button onClick={clearFilters} className="text-sm font-semibold text-brand-deep hover:underline">
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {loading && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <ChefCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
         {!loading && error && <ErrorMessage message={error} onRetry={loadChefs} />}
         {!loading && !error && result?.content.length === 0 && (
           <EmptyState
+            icon="search"
             title="No chefs match these filters"
             text="Try another city or clear the cuisine filter to see everyone available."
             action={
@@ -135,22 +184,29 @@ export default function ChefList() {
         )}
         {!loading && !error && result?.content.length > 0 && (
           <>
-            <p className="mb-4 text-sm text-muted">
-              {result.totalElements} chef{result.totalElements === 1 ? '' : 's'} found
-            </p>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {result.content.map((chef) => (
-                <ChefCard key={chef.id} chef={chef} />
+              {result.content.map((chef, i) => (
+                <div key={chef.id} className="animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
+                  <ChefCard chef={chef} />
+                </div>
               ))}
             </div>
             {result.totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-3">
+              <div className="mt-12 flex items-center justify-center gap-2">
                 <button className="btn-outline" disabled={page === 0} onClick={() => goToPage(page - 1)}>
                   Previous
                 </button>
-                <span className="text-sm text-muted">
-                  Page {page + 1} of {result.totalPages}
-                </span>
+                {Array.from({ length: result.totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goToPage(i)}
+                    className={`h-10 w-10 rounded-xl text-sm font-semibold ${
+                      i === page ? 'bg-ink text-cream' : 'text-muted hover:bg-line/60'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
                 <button
                   className="btn-outline"
                   disabled={page + 1 >= result.totalPages}

@@ -1,4 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -6,6 +7,7 @@ import Home from './pages/Home'
 import ChefList from './pages/ChefList'
 import ChefDetails from './pages/ChefDetails'
 import Booking from './pages/Booking'
+import BookingConfirmed from './pages/BookingConfirmed'
 import MyBookings from './pages/MyBookings'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -14,6 +16,10 @@ import AdminDashboard from './pages/AdminDashboard'
 import NotFound from './pages/NotFound'
 
 export default function App() {
+  const { pathname } = useLocation()
+
+  useEffect(() => window.scrollTo(0, 0), [pathname])
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -27,6 +33,7 @@ export default function App() {
 
           <Route element={<ProtectedRoute roles={['CUSTOMER']} />}>
             <Route path="/book/:chefId/:slotId" element={<Booking />} />
+            <Route path="/booking/confirmed" element={<BookingConfirmed />} />
             <Route path="/my-bookings" element={<MyBookings />} />
           </Route>
 
